@@ -64,5 +64,3 @@ Point your TradingView webhook to `http://your-server:5000/webhook`.
 ## License
 
 MIT
-
-
