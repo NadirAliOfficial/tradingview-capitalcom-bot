@@ -206,4 +206,4 @@ tradingview-capitalcom-bot/
 └── logs/
     └── bot.log         # Runtime logs
 ```
-<!-- updated: 2024-08-15-r01 -->
+<!-- updated: 2024-12-09-r01 -->
