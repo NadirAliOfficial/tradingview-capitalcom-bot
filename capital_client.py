@@ -41,7 +41,6 @@ class CapitalClient:
         payload = {
             "identifier": config.CAPITAL_IDENTIFIER,
             "password": config.CAPITAL_PASSWORD,
-            "encryptedPassword": False,
         }
         response = requests.post(url, json=payload, headers=self._base_headers(), timeout=10)
         response.raise_for_status()
