@@ -149,6 +149,8 @@ class CapitalClient:
             epic, direction, size, stop_level,
         )
         response = requests.post(url, json=payload, headers=self._auth_headers(), timeout=10)
+        if not response.ok:
+            logger.error("Position error %s: %s", response.status_code, response.text)
         response.raise_for_status()
         return response.json()
 
