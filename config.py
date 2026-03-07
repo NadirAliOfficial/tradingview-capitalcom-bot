@@ -15,8 +15,8 @@ POSITION_SIZE_PERCENT = float(os.getenv("POSITION_SIZE_PERCENT", "70"))
 STOP_LOSS_PERCENT = float(os.getenv("STOP_LOSS_PERCENT", "0.45"))
 
 # Base URLs
-DEMO_BASE_URL = "https://demo-api-capital.backend.gbst.com/api/v1"
-LIVE_BASE_URL = "https://api-capital.backend.gbst.com/api/v1"
+DEMO_BASE_URL = "https://demo-api-capital.backend.gb.capital.com/api/v1"
+LIVE_BASE_URL = "https://api-capital.backend.gb.capital.com/api/v1"
 BASE_URL = DEMO_BASE_URL if CAPITAL_DEMO else LIVE_BASE_URL
 
 # TradingView symbol -> Capital.com epic mapping
