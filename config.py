@@ -15,9 +15,12 @@ POSITION_SIZE_PERCENT = float(os.getenv("POSITION_SIZE_PERCENT", "70"))
 STOP_LOSS_PERCENT = float(os.getenv("STOP_LOSS_PERCENT", "0.45"))
 
 # Base URLs
+# Note: some regional accounts (e.g. Pakistan) serve demo accounts
+# through the live API endpoint. CAPITAL_DEMO controls account intent
+# but BASE_URL can be overridden via CAPITAL_BASE_URL in .env.
 DEMO_BASE_URL = "https://demo-api-capital.backend-capital.com/api/v1"
 LIVE_BASE_URL = "https://api-capital.backend-capital.com/api/v1"
-BASE_URL = DEMO_BASE_URL if CAPITAL_DEMO else LIVE_BASE_URL
+BASE_URL = os.getenv("CAPITAL_BASE_URL") or (DEMO_BASE_URL if CAPITAL_DEMO else LIVE_BASE_URL)
 
 # TradingView symbol -> Capital.com epic mapping
 SYMBOL_MAP = {

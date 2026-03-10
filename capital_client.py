@@ -90,15 +90,30 @@ class CapitalClient:
             "mid": (float(snapshot["bid"]) + float(snapshot["offer"])) / 2,
         }
 
-    def get_min_deal_size(self, epic):
-        """Return the minimum deal size for an instrument."""
+    def get_market_info(self, epic):
+        """Return dealingRules and instrument info for an epic."""
         self._ensure_session()
         url = f"{config.BASE_URL}/markets/{epic}"
         response = requests.get(url, headers=self._auth_headers(), timeout=10)
         response.raise_for_status()
-        dealing_rules = response.json().get("dealingRules", {})
-        min_size = dealing_rules.get("minDealSize", {}).get("value", 0.1)
+        return response.json()
+
+    def get_min_deal_size(self, epic):
+        """Return the minimum deal size for an instrument."""
+        info = self.get_market_info(epic)
+        min_size = info.get("dealingRules", {}).get("minDealSize", {}).get("value", 0.1)
         return float(min_size)
+
+    def get_margin_factor(self, epic):
+        """Return the margin factor percentage (e.g. 5.0 means 5% margin = 1:20 leverage)."""
+        info = self.get_market_info(epic)
+        instrument = info.get("instrument", {})
+        margin_factor = instrument.get("marginFactor", 100)
+        unit = instrument.get("marginFactorUnit", "PERCENTAGE")
+        if unit == "PERCENTAGE":
+            return float(margin_factor)
+        # fallback: no leverage
+        return 100.0
 
     # ------------------------------------------------------------------
     # Positions
@@ -177,15 +192,24 @@ class CapitalClient:
 
     def calculate_size(self, epic, price):
         """
-        Calculate deal size based on configured equity percentage.
-        Falls back to minimum deal size if calculated size is too small.
+        Calculate deal size so that the margin used equals POSITION_SIZE_PERCENT of account equity.
+
+        margin_used = size * price * (margin_factor / 100)
+        Solving for size: size = (balance * position_size_percent/100) / (price * margin_factor/100)
+                                = (balance * position_size_percent) / (price * margin_factor)
         """
         try:
             balance = self.get_account_balance()
-            allocation = balance * (config.POSITION_SIZE_PERCENT / 100)
-            min_size = self.get_min_deal_size(epic)
-            # For CFDs size is typically in lots; allocation / price gives approximate lots
-            size = round(allocation / price, 2)
+            margin_factor = self.get_margin_factor(epic)
+            info = self.get_market_info(epic)
+            min_size = float(info.get("dealingRules", {}).get("minDealSize", {}).get("value", 0.1))
+
+            size = (balance * config.POSITION_SIZE_PERCENT) / (price * margin_factor)
+            size = round(size, 2)
+            logger.info(
+                "Size calc: balance=%.2f margin_factor=%.2f%% price=%.2f → size=%.2f (min=%.2f)",
+                balance, margin_factor, price, size, min_size,
+            )
             return max(size, min_size)
         except Exception as exc:
             logger.warning("Could not calculate size, using min size: %s", exc)
