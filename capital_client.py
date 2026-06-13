@@ -200,8 +200,11 @@ class CapitalClient:
         """
         try:
             balance = self.get_account_balance()
-            margin_factor = self.get_margin_factor(epic)
             info = self.get_market_info(epic)
+            instrument = info.get("instrument", {})
+            margin_factor = float(instrument.get("marginFactor", 100))
+            if instrument.get("marginFactorUnit", "PERCENTAGE") != "PERCENTAGE":
+                margin_factor = 100.0
             min_size = float(info.get("dealingRules", {}).get("minDealSize", {}).get("value", 0.1))
 
             size = (balance * config.POSITION_SIZE_PERCENT) / (price * margin_factor)
